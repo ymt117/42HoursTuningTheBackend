@@ -370,7 +370,10 @@ const tomeActive = async (req, res) => {
 // GET /record-views/allActive
 // 全件一覧
 const allActive = async (req, res) => {
+  let startTime = performance.now();
   let user = await getLinkedUser(req.headers);
+  let endTime = performance.now();
+  console.log("end: getLinkedUser time: ", endTime - startTime);
 
   if (!user) {
     res.status(401).send();
@@ -387,7 +390,10 @@ const allActive = async (req, res) => {
 
   const searchRecordQs = `select * from record where status = "open" order by updated_at desc, record_id asc limit ? offset ?`;
 
+  startTime = performance.now();
   const [recordResult] = await pool.query(searchRecordQs, [limit, offset]);
+  endTime = performance.now();
+  console.log("end: pool.query time: ", endTime - startTime);
   mylog(recordResult);
 
   const items = Array(recordResult.length);
@@ -427,27 +433,42 @@ const allActive = async (req, res) => {
     let commentCount = 0;
     let isUnConfirmed = true;
 
+    startTime = performance.now();
     const [userResult] = await pool.query(searchUserQs, [createdBy]);
+    endTime = performance.now();
+    console.log("end: pool.query time: ", endTime - startTime);
     if (userResult.length === 1) {
       createdByName = userResult[0].name;
     }
 
+    startTime = performance.now();
     const [groupResult] = await pool.query(searchGroupQs, [applicationGroup]);
+    endTime = performance.now();
+    console.log("end: pool.query time: ", endTime - startTime);
     if (groupResult.length === 1) {
       applicationGroupName = groupResult[0].name;
     }
 
+    startTime = performance.now();
     const [itemResult] = await pool.query(searchThumbQs, [recordId]);
+    endTime = performance.now();
+    console.log("end: pool.query time: ", endTime - startTime);
     if (itemResult.length === 1) {
       thumbNailItemId = itemResult[0].item_id;
     }
 
+    startTime = performance.now();
     const [countResult] = await pool.query(countQs, [recordId]);
+    endTime = performance.now();
+    console.log("end: pool.query time: ", endTime - startTime);
     if (countResult.length === 1) {
       commentCount = countResult[0]['count(*)'];
     }
 
+    startTime = performance.now();
     const [lastResult] = await pool.query(searchLastQs, [user.user_id, recordId]);
+    endTime = performance.now();
+    console.log("end: pool.query time: ", endTime - startTime);
     if (lastResult.length === 1) {
       mylog(updatedAt);
       const updatedAtNum = Date.parse(updatedAt);
